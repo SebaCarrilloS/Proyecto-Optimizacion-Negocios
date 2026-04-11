@@ -1,193 +1,190 @@
-# 📧 Modelado de Uplift para Optimización de Campañas de Email
+# 📧 Optimización de Campañas de Email con Uplift Modeling (Machine Learning Causal)
 
-## 1. Problema de negocio
+## 🚀 Resumen ejecutivo
 
-En campañas de marketing, el objetivo no es simplemente predecir quién comprará, sino determinar a qué clientes conviene intervenir.
+En campañas de marketing, el objetivo no es predecir quién comprará, sino identificar a quién conviene contactar para generar impacto incremental.
 
-Enviar emails de forma masiva puede ser ineficiente, ya que:
+En este proyecto desarrollé un modelo de **uplift modeling** que permite estimar el efecto causal del envío de emails sobre cada cliente, optimizando decisiones de targeting.
 
-* algunos clientes comprarían igual (gasto innecesario)
-* otros no responderán (sin impacto)
-* algunos incluso pueden reaccionar negativamente
+Resultados principales:
 
-El verdadero desafío es:
+* El modelo de uplift supera al baseline de clasificación en métricas de impacto incremental (Qini y uplift curve)
+* Estrategias de targeting selectivo generan mayor utilidad que campañas masivas
+* Se logra mejorar el retorno económico al priorizar clientes con mayor respuesta incremental
 
-**maximizar el impacto incremental de la campaña.**
-
-Este proyecto utiliza técnicas de **uplift modeling (machine learning causal)** para estimar el efecto del email sobre cada cliente y optimizar decisiones de targeting.
+👉 Conclusión:
+**ordenar clientes por uplift es más efectivo que ordenarlos por probabilidad de conversión**
 
 ---
 
-## 2. Dataset
+## 🧠 Problema de negocio
 
-Se utiliza el **Hillstrom Email Marketing Dataset**, correspondiente a un experimento real de marketing.
+Las campañas tradicionales presentan tres problemas:
 
-Características principales:
+* se contacta a clientes que comprarían igual (costo innecesario)
+* se contacta a clientes que no responderán (sin impacto)
+* se ignora la heterogeneidad en la respuesta al tratamiento
+
+El problema real es:
+
+> ¿A qué clientes conviene enviar un email para maximizar el impacto incremental?
+
+---
+
+## ⚙️ Enfoque
+
+Se utilizó el **Hillstrom Email Marketing Dataset**, un experimento real con:
 
 * ~64.000 clientes
-* 3 grupos:
+* grupos tratados (`Mens`, `Womens`) y control (`No E-Mail`)
+* variables de comportamiento histórico
+* outcomes: `visit`, `conversion`, `spend`
 
-  * `Mens E-Mail`
-  * `Womens E-Mail`
-  * `No E-Mail`
-* Variables:
+El proyecto se estructuró en 5 etapas:
 
-  * comportamiento histórico
-  * canal de adquisición
-  * recencia
-  * gasto histórico
-* Resultados observados:
-
-  * `visit`
-  * `conversion`
-  * `spend`
-
-Gracias a su diseño experimental, el dataset permite estimar efectos causales.
-
----
-
-## 3. Enfoque del proyecto
-
-El desarrollo se estructura en tres etapas principales:
-
-### 3.1 Modelo base (clasificación tradicional)
-
-Se entrena un modelo para predecir la probabilidad de conversión.
-
-Objetivo:
-
-* demostrar que la predicción de propensión no es suficiente para optimizar campañas
-
----
-
-### 3.2 Modelado de uplift
-
-Se implementa un modelo tipo **T-Learner**, entrenando:
-
-* un modelo para clientes tratados
-* un modelo para clientes no tratados
-
-El uplift se define como:
-
-diferencia entre la probabilidad de conversión con tratamiento y sin tratamiento.
-
-Esto permite identificar distintos tipos de clientes:
-
-* **persuadables**: convierten gracias al email
-* **sure things**: convierten de todas formas
-* **lost causes**: no convierten
-* **do not disturb**: pueden reaccionar negativamente
-
----
-
-### 3.3 Evaluación
-
-Se utilizan métricas específicas de uplift:
-
-* curva de uplift
-* coeficiente Qini
-* análisis por deciles
-
-Estas métricas permiten evaluar la capacidad del modelo para priorizar clientes según impacto incremental.
-
----
-
-## 4. Resultados principales
-
-El modelo permite:
-
-* identificar clientes con mayor impacto incremental
-* evitar envíos innecesarios
-* mejorar la eficiencia de la campaña
-
-Hallazgo clave:
-
-**no todos los clientes deben ser contactados; el targeting selectivo genera mayor valor.**
-
----
-
-## 5. Impacto de negocio
-
-Se simulan distintas estrategias de targeting:
-
-* envío masivo
-* targeting top 50%
-* targeting top 20%
-* targeting top 10%
-
-Para cada estrategia se estima:
-
-* conversiones incrementales
-* ingresos incrementales
-* retorno sobre la inversión (ROI)
-
-Esto permite transformar el modelo en una herramienta de decisión.
-
----
-
-## 6. Estructura del proyecto
-
-```
-datos/
-notebooks/
-README.md
-```
-
-Flujo de trabajo:
-
-1. entendimiento del problema y EDA
+1. análisis exploratorio y validación del experimento
 2. modelo base de clasificación
-3. modelo de uplift
-4. evaluación con métricas adecuadas
+3. modelo de uplift (T-Learner)
+4. evaluación con métricas causales
 5. simulación de impacto de negocio
 
 ---
 
-## 7. Tecnologías utilizadas
+## 🤖 Modelos
+
+### Modelo base (clasificación)
+
+* Regresión logística
+* objetivo: predecir probabilidad de conversión
+
+### Modelo de uplift
+
+* T-Learner con LightGBM
+* dos modelos:
+
+  * clientes tratados
+  * clientes control
+* uplift estimado:
+
+  diferencia entre probabilidad con tratamiento y sin tratamiento
+
+---
+
+## 📊 Evaluación
+
+Se utilizaron métricas específicas de uplift:
+
+* curva de uplift
+* curva Qini
+* uplift AUC
+* Qini AUC
+* uplift observado por segmentos
+
+Resultados:
+
+* el modelo de uplift logra priorizar mejor a los clientes con mayor impacto incremental
+* el baseline identifica clientes con alta probabilidad de compra, pero no necesariamente con alto uplift
+
+---
+
+## 💰 Impacto de negocio
+
+Se simularon distintas estrategias de targeting:
+
+* campaña masiva
+* targeting basado en clasificación
+* targeting basado en uplift
+
+Para cada estrategia se estimó:
+
+* conversiones incrementales
+* ingresos incrementales
+* costo de campaña
+* utilidad
+* ROI
+
+### Hallazgos clave
+
+* el targeting selectivo supera a la campaña masiva en términos de utilidad
+* el modelo de uplift mejora el ROI frente al baseline
+* existe un punto óptimo de contacto (no es 100% de clientes)
+
+👉 Insight principal:
+
+**el valor no está en contactar más clientes, sino en contactar a los correctos**
+
+---
+
+## 📈 Ejemplo de decisión
+
+El modelo permite responder preguntas como:
+
+* ¿conviene contactar al top 10%, 20% o 50%?
+* ¿cuánto ingreso incremental genera cada estrategia?
+* ¿cuál es el ROI esperado?
+
+Esto transforma el modelo en una herramienta de decisión real.
+
+---
+
+## 🧩 Estructura del proyecto
+
+```text
+notebooks/
+│
+├── 01_entendimiento_negocio_y_eda.ipynb
+├── 02_modelo_base_clasificacion.ipynb
+├── 03_modelo_uplift_t_learner.ipynb
+├── 04_evaluacion_uplift_y_qini.ipynb
+└── 05_simulacion_impacto_negocio.ipynb
+```
+
+---
+
+## 🛠️ Tecnologías utilizadas
 
 * Python
-* pandas
-* numpy
+* pandas / numpy
 * scikit-learn
 * LightGBM
 * scikit-uplift
-* matplotlib / plotly
+* matplotlib
 
 ---
 
-## 8. Principales aprendizajes
+## 🧠 Principales aprendizajes
 
 * diferencia entre predicción y causalidad
 * importancia del impacto incremental en marketing
-* uso de métricas específicas de uplift
-* traducción de modelos a resultados económicos
+* uso de métricas adecuadas para uplift
+* traducción de modelos a decisiones de negocio
 
 ---
 
-## 9. Cómo ejecutar el proyecto
+## 🔍 Cómo ejecutar
 
-1. descargar el dataset
-2. ubicarlo en la carpeta `datos/`
+1. descargar dataset Hillstrom
+2. ubicar en carpeta local
 3. instalar dependencias:
 
 ```
 pip install -r requirements.txt
 ```
 
-4. ejecutar los notebooks en orden
+4. ejecutar notebooks en orden
 
 ---
 
-## 10. Próximos pasos
+## 📌 Próximos pasos
 
-* comparar distintos modelos de uplift
+* comparar con X-Learner / Causal Forest
 * optimización bajo restricciones de presupuesto
 * extensión a múltiples tratamientos
-* integración con Power BI
+* integración con dashboard (Power BI)
 
 ---
 
-## 11. Autor
+## 👤 Autor
 
 Sebastián Carrillo
 Data Scientist / Data Analyst
